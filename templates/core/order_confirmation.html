@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Success Message -->
+            <div class="card border-success mb-4">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-check-circle fa-5x text-success mb-4"></i>
+                    <h1 class="text-success">Order Confirmed!</h1>
+                    <p class="lead">Thank you for your purchase. Your order has been successfully placed.</p>
+                    <div class="alert alert-success d-inline-block">
+                        <h4 class="mb-0">Order #{{ order.order_number }}</h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Details -->
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="fas fa-user me-2"></i>Customer Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-1"><strong>{{ order.shipping_full_name }}</strong></p>
+                            <p class="mb-1">{{ order.shipping_address }}</p>
+                            <p class="mb-1">{{ order.shipping_city }}, {{ order.shipping_state }} - {{ order.shipping_pincode }}</p>
+                            <p class="mb-0"><i class="fas fa-phone me-2"></i>{{ order.shipping_phone }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Order Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Order Date:</span>
+                                <span>{{ order.created_at|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Order Status:</span>
+                                <span class="badge bg-success">{{ order.status|title }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Payment Status:</span>
+                                <span class="badge bg-success">{{ order.payment_status|title }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Total Amount:</span>
+                                <span class="fw-bold text-success">₹{{ order.total_amount }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-boxes me-2"></i>Order Items</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% for item in order_items %}
+                    <div class="border-bottom p-3">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h6 class="mb-1">{{ item.product.name }}</h6>
+                                <p class="text-muted small mb-2">{{ item.product.category.name }}</p>
+                                <div class="mb-2">
+                                    <span class="badge bg-success me-1">N:{{ item.product.nitrogen_content }}%</span>
+                                    <span class="badge bg-info me-1">P:{{ item.product.phosphorus_content }}%</span>
+                                    <span class="badge bg-warning">K:{{ item.product.potassium_content }}%</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <div class="mb-2">
+                                    <span class="text-muted">Qty: {{ item.quantity }}</span>
+                                </div>
+                                <h6 class="text-success mb-0">₹{{ item.item_total }}</h6>
+                                <small class="text-muted">₹{{ item.price }} each</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="text-center">
+                <a href="/orders/" class="btn btn-success btn-lg me-3">
+                    <i class="fas fa-history me-2"></i>View Order History
+                </a>
+                <a href="/products/" class="btn btn-outline-success btn-lg">
+                    <i class="fas fa-shopping-bag me-2"></i>Continue Shopping
+                </a>
+            </div>
+
+            <!-- Delivery Info -->
+            <div class="card mt-4">
+                <div class="card-body text-center">
+                    <i class="fas fa-shipping-fast fa-2x text-success mb-3"></i>
+                    <h5>What's Next?</h5>
+                    <p class="text-muted">
+                        Your order will be processed within 24 hours. You will receive updates about your order status via email.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add New Product</h4>
+                </div>
+                <div class="card-body p-4">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- Basic Information -->
+                            <div class="col-md-6">
+                                <h5 class="text-success mb-3">Basic Information</h5>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Product Name *</label>
+                                    <input type="text" name="name" class="form-control" value="{{ form.name.value|default:'' }}" required>
+                                    {% if form.name.errors %}
+                                        <div class="text-danger small">{{ form.name.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Category *</label>
+                                    <select name="category" class="form-select" required>
+                                        <option value="">Select Category</option>
+                                        {% for category in form.category.field.queryset %}
+                                            <option value="{{ category.id }}" {% if form.category.value == category.id %}selected{% endif %}>
+                                                {{ category.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if form.category.errors %}
+                                        <div class="text-danger small">{{ form.category.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Price (₹) *</label>
+                                    <input type="number" step="0.01" name="price" class="form-control" value="{{ form.price.value|default:'' }}" required>
+                                    {% if form.price.errors %}
+                                        <div class="text-danger small">{{ form.price.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Stock Quantity *</label>
+                                    <input type="number" name="stock_quantity" class="form-control" value="{{ form.stock_quantity.value|default:'' }}" required>
+                                    {% if form.stock_quantity.errors %}
+                                        <div class="text-danger small">{{ form.stock_quantity.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- NPK Information -->
+                            <div class="col-md-6">
+                                <h5 class="text-success mb-3">Fertilizer Specifications</h5>
+                                
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Nitrogen (N) %</label>
+                                        <input type="number" step="0.1" name="nitrogen_content" class="form-control" value="{{ form.nitrogen_content.value|default:'0' }}">
+                                        {% if form.nitrogen_content.errors %}
+                                            <div class="text-danger small">{{ form.nitrogen_content.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Phosphorus (P) %</label>
+                                        <input type="number" step="0.1" name="phosphorus_content" class="form-control" value="{{ form.phosphorus_content.value|default:'0' }}">
+                                        {% if form.phosphorus_content.errors %}
+                                            <div class="text-danger small">{{ form.phosphorus_content.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Potassium (K) %</label>
+                                        <input type="number" step="0.1" name="potassium_content" class="form-control" value="{{ form.potassium_content.value|default:'0' }}">
+                                        {% if form.potassium_content.errors %}
+                                            <div class="text-danger small">{{ form.potassium_content.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">NPK Ratio Preview</label>
+                                    <div class="alert alert-info">
+                                        <strong>N:{{ form.nitrogen_content.value|default:'0' }}%</strong> | 
+                                        <strong>P:{{ form.phosphorus_content.value|default:'0' }}%</strong> | 
+                                        <strong>K:{{ form.potassium_content.value|default:'0' }}%</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Description and Usage -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Product Description *</label>
+                                    <textarea name="description" class="form-control" rows="4" required>{{ form.description.value|default:'' }}</textarea>
+                                    {% if form.description.errors %}
+                                        <div class="text-danger small">{{ form.description.errors }}</div>
+                                    {% endif %}
+                                    <div class="form-text">Describe your fertilizer product in detail.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Suitable Crops</label>
+                                    <textarea name="suitable_crops" class="form-control" rows="2">{{ form.suitable_crops.value|default:'' }}</textarea>
+                                    <div class="form-text">List crops this fertilizer is suitable for.</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Usage Instructions</label>
+                                    <textarea name="usage_instructions" class="form-control" rows="2">{{ form.usage_instructions.value|default:'' }}</textarea>
+                                    <div class="form-text">Provide instructions for proper usage.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-plus-circle me-2"></i>Add Product
+                            </button>
+                            <a href="/dashboard/dealer/" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Help Section -->
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Fertilizer Information Guide</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6>Nitrogen (N)</h6>
+                            <p class="small text-muted">Promotes leaf growth and green color. Essential for vegetative growth.</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Phosphorus (P)</h6>
+                            <p class="small text-muted">Stimulates root development and flower production. Important for energy transfer.</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Potassium (K)</h6>
+                            <p class="small text-muted">Improves overall plant health, disease resistance, and fruit quality.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control:focus, .form-select:focus {
+        border-color: #2e8b57;
+        box-shadow: 0 0 0 0.2rem rgba(46, 139, 87, 0.25);
+    }
+    .form-label {
+        font-weight: 500;
+        color: #333;
+    }
+</style>
+{% endblock %}

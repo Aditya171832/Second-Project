@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.name }} - AgriGrow</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .product-card { border: none; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .btn-success { background-color: #2e8b57; border-color: #2e8b57; }
+        .specs-badge { font-size: 0.9rem; padding: 8px 12px; }
+        .product-image-container { height: 400px; overflow: hidden; }
+        @media (max-width: 768px) {
+            .product-image-container { height: 300px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand text-success" href="{% url 'core:landing' %}">
+                <i class="fas fa-seedling me-2"></i>AgriGrow
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{% url 'core:landing' %}">Home</a>
+                {% if user.is_authenticated and user.profile.user_type == 'farmer' %}
+                    <a class="nav-link" href="{% url 'core:farmer_dashboard' %}">Dashboard</a>
+                {% elif user.is_authenticated and user.profile.user_type == 'dealer' %}
+                    <a class="nav-link" href="{% url 'core:dealer_dashboard' %}">Dashboard</a>
+                {% endif %}
+                <a class="nav-link" href="{% url 'core:product_list' %}">
+                    <i class="fas fa-store me-1"></i>Products
+                </a>
+                {% if user.is_authenticated and user.profile.user_type == 'farmer' %}
+                    <a class="nav-link" href="{% url 'core:view_cart' %}">
+                        <i class="fas fa-shopping-cart"></i> Cart
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <!-- Back Button -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <a href="{% url 'core:product_list' %}" class="btn btn-outline-success">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Products
+                </a>
+            </div>
+        </div>
+
+        <!-- Product Details -->
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card product-card">
+                    <div class="card-body p-4">
+                        <div class="row">
+                            <!-- Product Image -->
+                            <div class="col-md-5 mb-4 mb-md-0">
+                                <div class="product-image-container rounded" style="background-color: #f8f9fa;">
+                                    {% if product.image %}
+                                        <img src="{{ product.get_image_url }}" 
+                                             alt="{{ product.name }}" 
+                                             class="h-100 w-100"
+                                             style="object-fit: contain;">
+                                    {% else %}
+                                        <div class="h-100 w-100 d-flex flex-column align-items-center justify-content-center">
+                                            <i class="fas fa-image fa-5x text-muted mb-3"></i>
+                                            <p class="text-muted">No image available</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-7">
+                                <h2 class="text-success">{{ product.name }}</h2>
+                                <p class="text-muted mb-3">{{ product.category.name }}</p>
+                                
+                                <!-- NPK Badges -->
+                                <div class="mb-4">
+                                    <span class="badge bg-success specs-badge me-2">
+                                        <i class="fas fa-atom me-1"></i>Nitrogen: {{ product.nitrogen_content }}%
+                                    </span>
+                                    <span class="badge bg-info specs-badge me-2">
+                                        <i class="fas fa-atom me-1"></i>Phosphorus: {{ product.phosphorus_content }}%
+                                    </span>
+                                    <span class="badge bg-warning specs-badge">
+                                        <i class="fas fa-atom me-1"></i>Potassium: {{ product.potassium_content }}%
+                                    </span>
+                                </div>
+
+                                <!-- Description -->
+                                <div class="mb-4">
+                                    <h5>Description</h5>
+                                    <p class="text-muted">{{ product.description }}</p>
+                                </div>
+
+                                <!-- Suitable Crops -->
+                                {% if product.suitable_crops %}
+                                <div class="mb-4">
+                                    <h5>Suitable Crops</h5>
+                                    <p class="text-muted">{{ product.suitable_crops }}</p>
+                                </div>
+                                {% endif %}
+
+                                <!-- Usage Instructions -->
+                                {% if product.usage_instructions %}
+                                <div class="mb-4">
+                                    <h5>Usage Instructions</h5>
+                                    <p class="text-muted">{{ product.usage_instructions }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Price & Action Card -->
+            <div class="col-lg-4">
+                <div class="card product-card sticky-top" style="top: 20px;">
+                    <div class="card-body text-center p-4">
+                        <h3 class="text-success mb-3">₹{{ product.price }}</h3>
+                        
+                        <div class="mb-3">
+                            <span class="badge {% if product.in_stock %}bg-success{% else %}bg-danger{% endif %} fs-6">
+                                {% if product.in_stock %}
+                                    <i class="fas fa-check me-1"></i>In Stock
+                                    <br><small>Available: {{ product.stock_quantity }} units</small>
+                                {% else %}
+                                    <i class="fas fa-times me-1"></i>Out of Stock
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        {% if user.is_authenticated and user.profile.user_type == 'farmer' %}
+                            {% if product.in_stock %}
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'core:add_to_cart' product.id %}" class="btn btn-success btn-lg">
+                                    <i class="fas fa-cart-plus me-2"></i>Add to Cart
+                                </a>
+                            </div>
+                            {% else %}
+                            <button class="btn btn-secondary btn-lg" disabled>
+                                <i class="fas fa-ban me-2"></i>Out of Stock
+                            </button>
+                            {% endif %}
+                        {% elif not user.is_authenticated %}
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'core:login' %}" class="btn btn-success btn-lg">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Login to Purchase
+                                </a>
+                            </div>
+                        {% endif %}
+
+                        <!-- Dealer Info -->
+                        <div class="mt-4 pt-3 border-top">
+                            <small class="text-muted">Sold by:</small>
+                            <p class="mb-0 fw-bold">{{ product.dealer.profile.company_name|default:product.dealer.username }}</p>
+                            {% if product.dealer.profile.company_name %}
+                            <small class="text-muted">Trusted Dealer</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Related Products -->
+                {% if related_products %}
+                <div class="card product-card mt-4">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0"><i class="fas fa-link me-2"></i>Related Products</h6>
+                    </div>
+                    <div class="card-body">
+                        {% for related_product in related_products|slice:":3" %}
+                        <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                            {% if related_product.image %}
+                            <img src="{{ related_product.get_image_url }}" 
+                                 alt="{{ related_product.name }}"
+                                 class="rounded me-3"
+                                 style="width: 60px; height: 60px; object-fit: cover;">
+                            {% else %}
+                            <div class="rounded bg-light d-flex align-items-center justify-content-center me-3"
+                                 style="width: 60px; height: 60px;">
+                                <i class="fas fa-image text-muted"></i>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <h6 class="mb-1">{{ related_product.name|truncatechars:20 }}</h6>
+                                <p class="text-success mb-0">₹{{ related_product.price }}</p>
+                                <a href="{% url 'core:product_detail' related_product.id %}" 
+                                   class="btn btn-outline-success btn-sm mt-1">
+                                    View
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

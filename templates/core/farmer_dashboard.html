@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <!-- Welcome Banner -->
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2><i class="fas fa-tractor me-2"></i>Welcome, Farmer {{ user.first_name|default:user.username }}!</h2>
+                            <p class="mb-0">Manage your fertilizer purchases and farm needs efficiently.</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <!-- FIXED: Added core: prefix -->
+                            <a href="{% url 'core:product_list' %}" class="btn btn-light btn-lg">
+                                <i class="fas fa-store me-2"></i>Shop Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-5">
+        <div class="col-md-3 mb-3">
+            <div class="card dashboard-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-shopping-cart fa-2x text-success mb-2"></i>
+                    <h4>{{ cart_items|length|default:0 }}</h4>
+                    <p class="text-muted mb-0">Items in Cart</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card dashboard-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-box fa-2x text-info mb-2"></i>
+                    <h4>{{ featured_products.count|default:0 }}</h4>
+                    <p class="text-muted mb-0">Available Products</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card dashboard-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-seedling fa-2x text-warning mb-2"></i>
+                    <h4>{{ user.profile.farm_size|default:0 }}</h4>
+                    <p class="text-muted mb-0">Farm Size (acres)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card dashboard-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-shipping-fast fa-2x text-primary mb-2"></i>
+                    <h4>{{ order_count|default:0 }}</h4>
+                    <p class="text-muted mb-0">Total Orders</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-3">
+                            <!-- FIXED: Added core: prefix -->
+                            <a href="{% url 'core:product_list' %}" class="btn btn-outline-success btn-lg w-100 py-3">
+                                <i class="fas fa-store fa-2x mb-2"></i><br>
+                                Browse Products
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <!-- FIXED: Added core: prefix -->
+                            <a href="{% url 'core:view_cart' %}" class="btn btn-outline-info btn-lg w-100 py-3">
+                                <i class="fas fa-shopping-cart fa-2x mb-2"></i><br>
+                                View Cart
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <!-- FIXED: Added core: prefix -->
+                            <a href="{% url 'core:order_history' %}" class="btn btn-outline-warning btn-lg w-100 py-3">
+                                <i class="fas fa-history fa-2x mb-2"></i><br>
+                                Order History
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <!-- FIXED: This URL doesn't exist yet, but keeping the structure -->
+                            <a href="{% url 'core:edit_profile' %}" class="btn btn-outline-primary btn-lg w-100 py-3">
+                                <i class="fas fa-user fa-2x mb-2"></i><br>
+                                Edit Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Featured Products -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-star me-2"></i>Featured Products</h5>
+                </div>
+                <div class="card-body">
+                    {% if featured_products %}
+                    <div class="row">
+                        {% for product in featured_products %}
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="card product-card h-100">
+                                <!-- Product Image -->
+                                <div class="product-image-container position-relative" style="height: 180px; overflow: hidden;">
+                                    {% if product.image %}
+                                        <img src="{{ product.get_image_url }}" 
+                                             alt="{{ product.name }}" 
+                                             class="card-img-top h-100 w-100"
+                                             style="object-fit: cover;">
+                                    {% else %}
+                                        <div class="h-100 w-100 d-flex align-items-center justify-content-center bg-light">
+                                            <i class="fas fa-image fa-3x text-muted"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="position-absolute top-0 end-0 m-2">
+                                        <span class="badge bg-success">Featured</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ product.name }}</h6>
+                                    <p class="card-text small text-muted">{{ product.category|default:"Fertilizer" }}</p>
+                                    
+                                    <div class="mb-2">
+                                        {% if product.nitrogen_content %}
+                                        <span class="badge bg-success me-1">N:{{ product.nitrogen_content }}%</span>
+                                        {% endif %}
+                                        {% if product.phosphorus_content %}
+                                        <span class="badge bg-info me-1">P:{{ product.phosphorus_content }}%</span>
+                                        {% endif %}
+                                        {% if product.potassium_content %}
+                                        <span class="badge bg-warning">K:{{ product.potassium_content }}%</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="text-success mb-0">₹{{ product.price }}</h6>
+                                        <span class="badge {% if product.stock_quantity > 0 %}bg-success{% else %}bg-danger{% endif %} small">
+                                            {% if product.stock_quantity > 0 %}In Stock{% else %}Out of Stock{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-transparent p-2">
+                                    <div class="d-grid gap-1">
+                                        <!-- FIXED: Added core: prefix -->
+                                        <a href="{% url 'core:product_detail' product.id %}" class="btn btn-outline-success btn-sm">
+                                            <i class="fas fa-eye me-1"></i> View Details
+                                        </a>
+                                        {% if product.stock_quantity > 0 %}
+                                        <a href="{% url 'core:add_to_cart' product.id %}" class="btn btn-success btn-sm">
+                                            <i class="fas fa-cart-plus me-1"></i> Add to Cart
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-seedling fa-2x text-muted mb-3"></i>
+                        <p class="text-muted">No featured products available at the moment.</p>
+                        <!-- FIXED: Added core: prefix -->
+                        <a href="{% url 'core:product_list' %}" class="btn btn-success">Browse All Products</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard-card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .dashboard-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    .product-card {
+        transition: transform 0.3s ease;
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    .product-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .product-image-container {
+        background-color: #f8f9fa;
+    }
+    .card-img-top {
+        transition: transform 0.3s ease;
+    }
+    .product-card:hover .card-img-top {
+        transform: scale(1.05);
+    }
+</style>
+{% endblock %}

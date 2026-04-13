@@ -1,0 +1,127 @@
+<!-- templates/core/add_review.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-star me-2"></i>Write a Review</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h5>{{ product.name }}</h5>
+                        <p class="text-muted">{{ product.category.name }}</p>
+                        <img src="{{ product.image_url|default:'/static/default-product.jpg' }}" 
+                             alt="{{ product.name }}" 
+                             class="img-fluid rounded" 
+                             style="max-height: 150px;">
+                    </div>
+                    
+                    {% if has_purchased %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Thank you for purchasing this product! Please share your experience.
+                    </div>
+                    {% endif %}
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Your Rating *</label>
+                            <div class="rating-stars mb-3">
+                                {% for value, label in form.rating.field.choices %}
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" 
+                                           name="rating" id="rating{{ value }}" 
+                                           value="{{ value }}" 
+                                           {% if form.rating.value == value|stringformat:"i" %}checked{% endif %}>
+                                    <label class="form-check-label" for="rating{{ value }}">
+                                        <div class="stars">
+                                            {% for i in "12345"|make_list %}
+                                                {% if i <= value|stringformat:"i" %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% else %}
+                                                    <i class="far fa-star text-warning"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                            <span class="ms-2">{{ label }}</span>
+                                        </div>
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% if form.rating.errors %}
+                                <div class="text-danger small">{{ form.rating.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Your Review *</label>
+                            {{ form.comment }}
+                            {% if form.comment.errors %}
+                                <div class="text-danger small">{{ form.comment.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">
+                                Share your experience with this product. Be honest and specific.
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'core:product_detail' product.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Back to Product
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-paper-plane me-1"></i> Submit Review
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Review Guidelines -->
+            <div class="card shadow mt-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Review Guidelines</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li>Be honest and objective about your experience</li>
+                        <li>Focus on the product quality, effectiveness, and value for money</li>
+                        <li>Share specific details about how the product performed</li>
+                        <li>Avoid personal attacks or offensive language</li>
+                        <li>Your review will help other farmers make informed decisions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .rating-stars .form-check-input {
+        display: none;
+    }
+    .rating-stars .form-check-label {
+        cursor: pointer;
+        padding: 8px 12px;
+        border-radius: 5px;
+        transition: all 0.3s;
+    }
+    .rating-stars .form-check-input:checked + .form-check-label {
+        background-color: #fff3cd;
+        border: 1px solid #ffc107;
+    }
+    .stars {
+        font-size: 1.2rem;
+    }
+    textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}

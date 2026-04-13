@@ -1,0 +1,300 @@
+<!-- templates/core/order_detail.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0"><i class="fas fa-file-invoice me-2"></i>Order Details</h4>
+                        <a href="{% url 'core:dealer_orders' %}" class="btn btn-light btn-sm">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Orders
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Order Summary -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Order Information</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Order #:</strong></td>
+                                    <td>{{ order.order_number|default:order.id }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Order Date:</strong></td>
+                                    <td>{{ order.created_at|date:"d M Y, h:i A" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Status:</strong></td>
+                                    <td>
+                                        <span class="badge bg-{% if order.status == 'pending' %}warning{% elif order.status == 'processing' %}info{% elif order.status == 'shipped' %}primary{% elif order.status == 'delivered' %}success{% else %}danger{% endif %}">
+                                            {{ order.status|title }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% if order.tracking_number %}
+                                <tr>
+                                    <td><strong>Tracking #:</strong></td>
+                                    <td>{{ order.tracking_number }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if order.shipped_at %}
+                                <tr>
+                                    <td><strong>Shipped On:</strong></td>
+                                    <td>{{ order.shipped_at|date:"d M Y" }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if order.delivered_at %}
+                                <tr>
+                                    <td><strong>Delivered On:</strong></td>
+                                    <td>{{ order.delivered_at|date:"d M Y" }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Customer Information</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Name:</strong></td>
+                                    <td>{{ order.user.first_name|default:order.user.username }} {{ order.user.last_name|default:'' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Email:</strong></td>
+                                    <td>{{ order.user.email }}</td>
+                                </tr>
+                                {% if order.shipping_phone %}
+                                <tr>
+                                    <td><strong>Phone:</strong></td>
+                                    <td>{{ order.shipping_phone }}</td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <td><strong>Address:</strong></td>
+                                    <td>
+                                        {{ order.shipping_address }}<br>
+                                        {{ order.shipping_city }}, {{ order.shipping_state }} - {{ order.shipping_pincode }}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Order Items -->
+                    <h6 class="mb-3">Order Items</h6>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order_items %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ item.product.name }}</strong><br>
+                                        <small class="text-muted">Seller: {{ item.dealer.profile.company_name|default:item.dealer.username }}</small>
+                                    </td>
+                                    <td>₹{{ item.price }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td class="text-success fw-bold">₹{{ item.item_total }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
+                                    <td class="text-success fw-bold">₹{{ order.total_amount }}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                                    <td class="text-success fw-bold">₹{{ order.total_amount }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    
+                    <!-- Status Update Form (for dealers only) -->
+                    {% if request.user.profile.user_type == 'dealer' %}
+                    <div class="mt-4">
+                        <h6>Update Order Status</h6>
+                        <form method="POST" action="{% url 'core:update_order_status' order.id %}" class="row g-3">
+                            {% csrf_token %}
+                            <div class="col-md-6">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" name="status" required>
+                                    <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>Pending</option>
+                                    <option value="processing" {% if order.status == 'processing' %}selected{% endif %}>Processing</option>
+                                    <option value="shipped" {% if order.status == 'shipped' %}selected{% endif %}>Shipped</option>
+                                    <option value="delivered" {% if order.status == 'delivered' %}selected{% endif %}>Delivered</option>
+                                    <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Tracking Number (if shipped)</label>
+                                <input type="text" class="form-control" name="tracking_number" 
+                                       value="{{ order.tracking_number|default:'' }}">
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save me-1"></i>Update Status
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Order Actions -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h6 class="mb-3">Order Actions</h6>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'core:dealer_orders' %}" class="btn btn-outline-success">
+                            <i class="fas fa-list me-2"></i>All Orders
+                        </a>
+                        {% if request.user.profile.user_type == 'dealer' %}
+                        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#updateStatusModal">
+                            <i class="fas fa-edit me-2"></i>Update Status
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payment Information -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h6 class="mb-3">Payment Information</h6>
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Payment Status:</strong></td>
+                            <td>
+                                <span class="badge bg-{% if order.payment_status == 'completed' %}success{% else %}warning{% endif %}">
+                                    {{ order.payment_status|title }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Payment Method:</strong></td>
+                            <td>Cash on Delivery</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Order Total:</strong></td>
+                            <td class="text-success fw-bold">₹{{ order.total_amount }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Order Timeline -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6 class="mb-3">Order Timeline</h6>
+                    <div class="timeline">
+                        <div class="timeline-item {% if order.status == 'pending' %}active{% endif %}">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <h6>Order Placed</h6>
+                                <small>{{ order.created_at|date:"d M Y, h:i A" }}</small>
+                            </div>
+                        </div>
+                        {% if order.status in 'processing,shipped,delivered,cancelled' %}
+                        <div class="timeline-item {% if order.status == 'processing' %}active{% endif %}">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <h6>Processing</h6>
+                                <small>Order being processed</small>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if order.status in 'shipped,delivered' %}
+                        <div class="timeline-item {% if order.status == 'shipped' %}active{% endif %}">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <h6>Shipped</h6>
+                                {% if order.shipped_at %}
+                                <small>{{ order.shipped_at|date:"d M Y" }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if order.status == 'delivered' %}
+                        <div class="timeline-item active">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <h6>Delivered</h6>
+                                {% if order.delivered_at %}
+                                <small>{{ order.delivered_at|date:"d M Y" }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if order.status == 'cancelled' %}
+                        <div class="timeline-item active">
+                            <div class="timeline-marker bg-danger"></div>
+                            <div class="timeline-content">
+                                <h6>Cancelled</h6>
+                                <small>Order cancelled</small>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #2e8b57;
+    }
+    .badge {
+        font-weight: 500;
+        padding: 5px 10px;
+    }
+    .timeline {
+        position: relative;
+        padding-left: 20px;
+    }
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    .timeline-marker {
+        position: absolute;
+        left: -20px;
+        top: 5px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #ddd;
+    }
+    .timeline-item.active .timeline-marker {
+        background-color: #2e8b57;
+    }
+    .timeline-content {
+        padding-left: 10px;
+    }
+</style>
+{% endblock %}

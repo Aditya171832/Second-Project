@@ -1,0 +1,53 @@
+/* static/css/style.css */
+.hero-section {
+    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-4.0.3');
+    background-size: cover;
+    background-position: center;
+    color: white;
+    padding: 100px 0;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    color: #2e8b57 !important;
+}
+
+.btn-success {
+    background-color: #2e8b57;
+    border-color: #2e8b57;
+}
+
+.btn-success:hover {
+    background-color: #26734a;
+    border-color: #26734a;
+}
+
+.btn-outline-success {
+    color: #2e8b57;
+    border-color: #2e8b57;
+}
+
+.btn-outline-success:hover {
+    background-color: #2e8b57;
+    border-color: #2e8b57;
+}
+
+.feature-icon {
+    font-size: 3rem;
+    color: #2e8b57;
+    margin-bottom: 1rem;
+}
+
+.bg-light-custom {
+    background-color: #f8f9fa !important;
+}
+
+.text-agrigreen {
+    color: #2e8b57;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}

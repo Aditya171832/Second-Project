@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - AgriGrow</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .cart-card { border: none; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn-success { background-color: #2e8b57; border-color: #2e8b57; }
+        .quantity-btn { width: 35px; height: 35px; }
+        .product-image { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand text-success" href="{% url 'core:landing' %}">
+                <i class="fas fa-seedling me-2"></i>AgriGrow
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{% url 'core:landing' %}">Home</a>
+                <a class="nav-link" href="{% url 'core:farmer_dashboard' %}">Dashboard</a>
+                <a class="nav-link" href="{% url 'core:product_list' %}">
+                    <i class="fas fa-store me-1"></i>Products
+                </a>
+                <a class="nav-link active" href="{% url 'core:view_cart' %}">
+                    <i class="fas fa-shopping-cart"></i> Cart
+                    {% if cart.total_items > 0 %}
+                    <span class="badge bg-success">{{ cart.total_items }}</span>
+                    {% endif %}
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="text-success">
+                    <i class="fas fa-shopping-cart me-2"></i>Shopping Cart
+                </h1>
+                <p class="text-muted">Review your selected fertilizers</p>
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="row mb-4">
+            <div class="col-12">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if cart_items %}
+        <!-- Cart Items -->
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card cart-card">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Cart Items ({{ cart.total_items }})</h5>
+                        <a href="{% url 'core:product_list' %}" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-plus me-1"></i>Add More Items
+                        </a>
+                    </div>
+                    <div class="card-body p-0">
+                        {% for item in cart_items %}
+                        <div class="border-bottom p-4">
+                            <div class="row align-items-center">
+                                <!-- Product Image -->
+                                <div class="col-md-2 mb-3 mb-md-0">
+                                    {% if item.product.image %}
+                                        <img src="{{ item.product.get_image_url }}" 
+                                             alt="{{ item.product.name }}"
+                                             class="product-image">
+                                    {% else %}
+                                        <div class="product-image bg-light d-flex align-items-center justify-content-center">
+                                            <i class="fas fa-image text-muted"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6 class="mb-1">{{ item.product.name }}</h6>
+                                    <p class="text-muted small mb-2">{{ item.product.category.name }}</p>
+                                    <div class="mb-2">
+                                        <span class="badge bg-success me-1">N:{{ item.product.nitrogen_content }}%</span>
+                                        <span class="badge bg-info me-1">P:{{ item.product.phosphorus_content }}%</span>
+                                        <span class="badge bg-warning">K:{{ item.product.potassium_content }}%</span>
+                                    </div>
+                                    <p class="text-success fw-bold mb-0">₹{{ item.product.price }} per unit</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center">
+                                            <form method="post" action="{% url 'core:update_cart_item' item.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="decrease">
+                                                <button type="submit" class="btn btn-outline-secondary quantity-btn" 
+                                                        {% if item.quantity <= 1 %}disabled{% endif %}>
+                                                    <i class="fas fa-minus"></i>
+                                                </button>
+                                            </form>
+                                            <span class="mx-3 fw-bold">{{ item.quantity }}</span>
+                                            <form method="post" action="{% url 'core:update_cart_item' item.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="increase">
+                                                <button type="submit" class="btn btn-outline-secondary quantity-btn"
+                                                        {% if item.quantity >= item.product.stock_quantity %}disabled{% endif %}>
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                        <div class="text-end">
+                                            <h6 class="text-success mb-1">₹{{ item.total_price }}</h6>
+                                            <form method="post" action="{% url 'core:remove_from_cart' item.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-link text-danger p-0">
+                                                    <small><i class="fas fa-trash me-1"></i>Remove</small>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    {% if item.quantity >= item.product.stock_quantity %}
+                                    <small class="text-danger d-block mt-1">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        Max quantity reached
+                                    </small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="col-lg-4">
+                <div class="card cart-card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Order Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal ({{ cart.total_items }} items):</span>
+                            <span>₹{{ cart.total_price }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Shipping:</span>
+                            <span class="text-success">FREE</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Tax (18% GST):</span>
+                            <span>₹{{ tax|floatformat:2 }}</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-4">
+                            <strong>Total Amount:</strong>
+                            <strong class="text-success">₹{{ total_amount|floatformat:2 }}</strong>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'core:checkout' %}" class="btn btn-success btn-lg">
+                                <i class="fas fa-credit-card me-2"></i>Proceed to Checkout
+                            </a>
+                            <a href="{% url 'core:product_list' %}" class="btn btn-outline-success">
+                                <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Farm Tips -->
+                <div class="card cart-card mt-4">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Farming Tip</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="small text-muted mb-0">
+                            💡 <strong>Best Practice:</strong> Test your soil before applying fertilizers. 
+                            This helps you choose the right NPK ratio for optimal crop growth.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- Empty Cart -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card cart-card text-center py-5">
+                    <div class="card-body">
+                        <i class="fas fa-shopping-cart fa-4x text-muted mb-4"></i>
+                        <h3 class="text-muted">Your cart is empty</h3>
+                        <p class="text-muted mb-4">Browse our products and add some fertilizers to get started!</p>
+                        <a href="{% url 'core:product_list' %}" class="btn btn-success btn-lg">
+                            <i class="fas fa-store me-2"></i>Browse Products
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

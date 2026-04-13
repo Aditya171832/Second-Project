@@ -1,0 +1,270 @@
+<!-- templates/core/edit_profile.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-user-edit me-2"></i>Edit Your Profile</h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %} me-2"></i>{{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="POST" action="{% url 'core:update_profile' %}">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">First Name *</label>
+                                <input type="text" class="form-control" name="first_name" 
+                                       value="{{ user.first_name|default:'' }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Last Name</label>
+                                <input type="text" class="form-control" name="last_name" 
+                                       value="{{ user.last_name|default:'' }}">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Email Address *</label>
+                            <input type="email" class="form-control" name="email" 
+                                   value="{{ user.email }}" required>
+                        </div>
+                        
+                        <!-- FIXED: Changed from user.phone to profile.phone -->
+                        <div class="mb-3">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" name="phone" 
+                                   value="{% if profile %}{{ profile.phone|default:'' }}{% endif %}" 
+                                   pattern="[0-9]{10}" 
+                                   placeholder="10-digit mobile number">
+                        </div>
+                        
+                        <!-- FIXED: Changed from user.address to profile.address -->
+                        <div class="mb-3">
+                            <label class="form-label">Address</label>
+                            <textarea class="form-control" name="address" rows="3" 
+                                      placeholder="Enter your complete address">{% if profile %}{{ profile.address|default:'' }}{% endif %}</textarea>
+                        </div>
+                        
+                        <!-- FIXED: Added missing profile fields -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">City</label>
+                                <input type="text" class="form-control" name="city" 
+                                       value="{% if profile %}{{ profile.city|default:'' }}{% endif %}" 
+                                       placeholder="Your city">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">State</label>
+                                <input type="text" class="form-control" name="state" 
+                                       value="{% if profile %}{{ profile.state|default:'' }}{% endif %}" 
+                                       placeholder="Your state">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Pincode</label>
+                            <input type="text" class="form-control" name="pincode" 
+                                   value="{% if profile %}{{ profile.pincode|default:'' }}{% endif %}" 
+                                   pattern="[0-9]{6}" 
+                                   placeholder="6-digit pincode">
+                        </div>
+                        
+                        {% if profile.user_type == 'farmer' %}
+                        <div class="border-top pt-3 mt-3">
+                            <h5 class="mb-3"><i class="fas fa-tractor me-2"></i>Farm Information</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Farm Size (acres)</label>
+                                    <input type="number" class="form-control" name="farm_size" 
+                                           step="0.1" min="0" 
+                                           value="{{ profile.farm_size|default:0 }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Farm Location</label>
+                                    <input type="text" class="form-control" name="farm_location" 
+                                           value="{{ profile.farm_location|default:'' }}" 
+                                           placeholder="Village/City, District, State">
+                                </div>
+                            </div>
+                        </div>
+                        {% elif profile.user_type == 'dealer' %}
+                        <div class="border-top pt-3 mt-3">
+                            <h5 class="mb-3"><i class="fas fa-building me-2"></i>Business Information</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Company Name</label>
+                                    <input type="text" class="form-control" name="company_name" 
+                                           value="{{ profile.company_name|default:'' }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">GST Number</label>
+                                    <input type="text" class="form-control" name="gst_number" 
+                                           value="{{ profile.gst_number|default:'' }}">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Business Address</label>
+                                <textarea class="form-control" name="business_address" rows="2">{{ profile.business_address|default:'' }}</textarea>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% if profile.user_type == 'farmer' %}{% url 'core:farmer_dashboard' %}{% else %}{% url 'core:dealer_dashboard' %}{% endif %}" 
+                               class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-1"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Password Change Section -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-key me-2"></i>Change Password</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'core:change_password' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Current Password *</label>
+                            <input type="password" class="form-control" name="old_password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Password *</label>
+                            <input type="password" class="form-control" name="new_password1" required 
+                                   minlength="8" placeholder="At least 8 characters">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Confirm New Password *</label>
+                            <input type="password" class="form-control" name="new_password2" required 
+                                   minlength="8">
+                        </div>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-key me-1"></i> Change Password
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Profile Summary -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-user-circle fa-4x text-success"></i>
+                    </div>
+                    <h4>{{ user.first_name|default:user.username }} {{ user.last_name|default:'' }}</h4>
+                    <p class="text-muted">
+                        <i class="fas fa-user-tag me-1"></i>
+                        {% if profile.user_type == 'farmer' %}Farmer{% elif profile.user_type == 'dealer' %}Dealer{% else %}User{% endif %}
+                    </p>
+                    <p class="text-muted">
+                        <i class="fas fa-envelope me-1"></i>{{ user.email }}
+                    </p>
+                    {% if profile.phone %}
+                    <p class="text-muted">
+                        <i class="fas fa-phone me-1"></i>{{ profile.phone }}
+                    </p>
+                    {% endif %}
+                    {% if profile.city and profile.state %}
+                    <p class="text-muted">
+                        <i class="fas fa-map-marker-alt me-1"></i>{{ profile.city }}, {{ profile.state }}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Quick Links -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-link me-2"></i>Quick Links</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% if profile.user_type == 'farmer' %}
+                        <a href="{% url 'core:farmer_dashboard' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        </a>
+                        <a href="{% url 'core:order_history' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-history me-2"></i>Order History
+                        </a>
+                        <a href="{% url 'core:view_cart' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-shopping-cart me-2"></i>Shopping Cart
+                        </a>
+                        {% else %}
+                        <a href="{% url 'core:dealer_dashboard' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        </a>
+                        <a href="{% url 'core:dealer_orders' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-clipboard-list me-2"></i>Manage Orders
+                        </a>
+                        <a href="{% url 'core:dealer_add_product' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-plus-circle me-2"></i>Add Product
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'core:product_list' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-store me-2"></i>Browse Products
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Orders -->
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-clock me-2"></i>Recent Orders</h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_orders %}
+                        <div class="list-group list-group-flush">
+                            {% for order in recent_orders %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <small class="text-muted">#{{ order.order_number|default:order.id }}</small><br>
+                                        <small>{{ order.created_at|date:"d M Y" }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="text-success fw-bold">₹{{ order.total_amount }}</span><br>
+                                        <span class="badge bg-{% if order.status == 'delivered' %}success{% else %}warning{% endif %} small">
+                                            {{ order.status|title }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-box-open fa-2x text-muted mb-2"></i>
+                            <p class="text-muted mb-0">No recent orders</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

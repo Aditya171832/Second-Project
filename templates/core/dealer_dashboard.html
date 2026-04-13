@@ -1,0 +1,453 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <!-- Welcome Banner -->
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2><i class="fas fa-store me-2"></i>Welcome, {{ user.profile.company_name|default:user.username }}!</h2>
+                            <p class="mb-0">Manage your fertilizer products and grow your business.</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{% url 'core:dealer_add_product' %}" class="btn btn-light btn-lg">
+                                <i class="fas fa-plus me-2"></i>Add Product
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-5">
+        <div class="col-md-3 mb-3">
+            <div class="card dashboard-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-box fa-2x text-success mb-2"></i>
+                    <h4>{{ total_products|default:0 }}</h4>
+                    <p class="text-muted mb-0">Total Products</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card dashboard-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-shopping-cart fa-2x text-info mb-2"></i>
+                    <h4>{{ total_orders|default:0 }}</h4>
+                    <p class="text-muted mb-0">Total Orders</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card dashboard-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-rupee-sign fa-2x text-warning mb-2"></i>
+                    <h4>₹{{ total_revenue|default:0 }}</h4>
+                    <p class="text-muted mb-0">Total Revenue</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card dashboard-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                    <h4>{{ total_customers|default:0 }}</h4>
+                    <p class="text-muted mb-0">Customers</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'core:dealer_add_product' %}" class="btn btn-outline-success btn-lg w-100 py-3">
+                                <i class="fas fa-plus-circle fa-2x mb-2"></i><br>
+                                Add Product
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'core:product_list' %}" class="btn btn-outline-info btn-lg w-100 py-3">
+                                <i class="fas fa-store fa-2x mb-2"></i><br>
+                                Browse Market
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="#analytics-section" class="btn btn-outline-warning btn-lg w-100 py-3" onclick="showAnalytics()">
+                                <i class="fas fa-chart-line fa-2x mb-2"></i><br>
+                                View Analytics
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-primary btn-lg w-100 py-3 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-cog fa-2x mb-2"></i><br>
+                                    Settings
+                                </button>
+                                <div class="dropdown-menu w-100">
+                                    <a class="dropdown-item" href="{% url 'core:edit_profile' %}">
+                                        <i class="fas fa-user-edit me-2"></i>Edit Profile
+                                    </a>
+                                    <a class="dropdown-item" href="{% url 'core:dealer_orders' %}">
+                                        <i class="fas fa-clipboard-list me-2"></i>Manage Orders
+                                    </a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item text-danger" href="{% url 'core:logout' %}">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Section -->
+    <div class="row mb-5" id="analytics-section" style="display: none;">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header bg-warning text-dark">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Business Analytics</h5>
+                        <button class="btn btn-sm btn-outline-dark" onclick="hideAnalytics()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Stock Alerts -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card border-warning">
+                                <div class="card-header bg-warning bg-opacity-10">
+                                    <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Stock Alerts</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if low_stock_products or out_of_stock_products %}
+                                        {% if out_of_stock_products %}
+                                        <div class="alert alert-danger mb-3">
+                                            <h6><i class="fas fa-times-circle me-2"></i>Out of Stock ({{ out_of_stock_products.count }})</h6>
+                                            <ul class="mb-0">
+                                                {% for product in out_of_stock_products|slice:":3" %}
+                                                <li>{{ product.name }} - ₹{{ product.price }}</li>
+                                                {% endfor %}
+                                                {% if out_of_stock_products.count > 3 %}
+                                                <li>...and {{ out_of_stock_products.count|add:"-3" }} more</li>
+                                                {% endif %}
+                                            </ul>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if low_stock_products %}
+                                        <div class="alert alert-warning">
+                                            <h6><i class="fas fa-exclamation me-2"></i>Low Stock ({{ low_stock_products.count }})</h6>
+                                            <ul class="mb-0">
+                                                {% for product in low_stock_products|slice:":3" %}
+                                                <li>{{ product.name }} - {{ product.stock_quantity }} left</li>
+                                                {% endfor %}
+                                                {% if low_stock_products.count > 3 %}
+                                                <li>...and {{ low_stock_products.count|add:"-3" }} more</li>
+                                                {% endif %}
+                                            </ul>
+                                        </div>
+                                        {% endif %}
+                                    {% else %}
+                                        <div class="text-center py-3">
+                                            <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                                            <p class="text-muted mb-0">All products have sufficient stock!</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Recent Orders Summary -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card border-info">
+                                <div class="card-header bg-info bg-opacity-10">
+                                    <h6 class="mb-0"><i class="fas fa-history me-2"></i>Recent Orders</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if recent_orders %}
+                                        <div class="list-group list-group-flush">
+                                            {% for order in recent_orders %}
+                                            <div class="list-group-item">
+                                                <div class="d-flex justify-content-between">
+                                                    <div>
+                                                        <small class="text-muted">Order #{{ order.order_number|default:order.id }}</small><br>
+                                                        <small>{{ order.created_at|date:"d M Y" }}</small>
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <span class="text-success fw-bold">₹{{ order.total_amount }}</span><br>
+                                                        <span class="badge bg-{% if order.status == 'delivered' %}success{% elif order.status == 'shipped' %}info{% elif order.status == 'pending' %}warning{% else %}secondary{% endif %} small">
+                                                            {{ order.status|title }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        <div class="text-center mt-3">
+                                            <a href="{% url 'core:dealer_orders' %}" class="btn btn-sm btn-info">
+                                                View All Orders
+                                            </a>
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center py-4">
+                                            <i class="fas fa-shopping-cart fa-2x text-muted mb-2"></i>
+                                            <p class="text-muted mb-0">No orders yet</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Stats Summary -->
+                    <div class="row mt-3">
+                        <div class="col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h6 class="text-success mb-1">{{ total_products|default:0 }}</h6>
+                                    <small class="text-muted">Active Products</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h6 class="text-info mb-1">{{ total_orders|default:0 }}</h6>
+                                    <small class="text-muted">Total Orders</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h6 class="text-warning mb-1">₹{{ total_revenue|default:0 }}</h6>
+                                    <small class="text-muted">Total Revenue</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h6 class="text-primary mb-1">{{ total_customers|default:0 }}</h6>
+                                    <small class="text-muted">Unique Customers</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Top Selling Products -->
+                    {% if top_products %}
+                    <div class="mt-4">
+                        <h6><i class="fas fa-trophy me-2"></i>Top Selling Products</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Units Sold</th>
+                                        <th>Revenue</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for product in top_products %}
+                                    <tr>
+                                        <td>{{ product.product__name }}</td>
+                                        <td>{{ product.total_sold }}</td>
+                                        <td class="text-success">₹{{ product.total_revenue }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Products -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-boxes me-2"></i>My Products</h5>
+                    <a href="{% url 'core:dealer_add_product' %}" class="btn btn-success btn-sm">
+                        <i class="fas fa-plus me-1"></i>Add New
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if dealer_products %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Image</th>
+                                    <th>Product Name</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th>NPK Ratio</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in dealer_products %}
+                                <tr>
+                                    <td>
+                                        {% if product.image %}
+                                            <img src="{{ product.get_image_url }}" alt="{{ product.name }}" 
+                                                 class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                                 style="width: 60px; height: 60px;">
+                                                <i class="fas fa-image text-muted"></i>
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>{{ product.name }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ product.description|truncatewords:5 }}</small>
+                                    </td>
+                                    <td>{{ product.category.name|default:"Uncategorized" }}</td>
+                                    <td class="text-success fw-bold">₹{{ product.price }}</td>
+                                    <td>
+                                        <span class="badge {% if product.stock_quantity > 10 %}bg-success{% elif product.stock_quantity > 0 %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {{ product.stock_quantity }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <small>
+                                            <span class="badge bg-success">N:{{ product.nitrogen_content }}%</span>
+                                            <span class="badge bg-info">P:{{ product.phosphorus_content }}%</span>
+                                            <span class="badge bg-warning">K:{{ product.potassium_content }}%</span>
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if product.is_available %}bg-success{% else %}bg-danger{% endif %}">
+                                            {% if product.is_available %}Active{% else %}Inactive{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'core:product_detail' product.id %}" class="btn btn-outline-primary" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'core:dealer_edit_product' product.id %}" class="btn btn-outline-warning" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No Products Yet</h4>
+                        <p class="text-muted mb-4">Start by adding your first fertilizer product to the marketplace.</p>
+                        <a href="{% url 'core:dealer_add_product' %}" class="btn btn-success btn-lg">
+                            <i class="fas fa-plus me-2"></i>Add Your First Product
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard-card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .dashboard-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #2e8b57;
+    }
+    .dropdown-menu {
+        min-width: 200px;
+    }
+    .list-group-item {
+        border: none;
+        padding: 0.75rem 0;
+    }
+    .badge {
+        font-weight: 500;
+    }
+    .img-thumbnail {
+        padding: 2px;
+        border: 1px solid #dee2e6;
+    }
+</style>
+
+<script>
+    function showAnalytics() {
+        var analyticsSection = document.getElementById('analytics-section');
+        if (analyticsSection) {
+            analyticsSection.style.display = 'block';
+            // Smooth scroll to analytics section
+            analyticsSection.scrollIntoView({ 
+                behavior: 'smooth' 
+            });
+        }
+    }
+    
+    function hideAnalytics() {
+        var analyticsSection = document.getElementById('analytics-section');
+        if (analyticsSection) {
+            analyticsSection.style.display = 'none';
+        }
+    }
+    
+    // Auto-show analytics if there are stock alerts
+    window.addEventListener('load', function() {
+        // Check if there are stock alerts (this is handled by Django template)
+        // If you want to check dynamically, you can add a data attribute
+        var hasStockAlerts = document.body.getAttribute('data-stock-alerts') === 'true';
+        if (hasStockAlerts) {
+            showAnalytics();
+        }
+    });
+</script>
+
+<!-- Add a data attribute to body if there are stock alerts -->
+{% if low_stock_products or out_of_stock_products %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.body.setAttribute('data-stock-alerts', 'true');
+        showAnalytics();
+    });
+</script>
+{% endif %}
+{% endblock %}
